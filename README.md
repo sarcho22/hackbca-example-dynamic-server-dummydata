@@ -1,172 +1,223 @@
 # hackathon-example-dynamic-render-with-dummy-data
 
-In this step, we begin to upgrade our static prototype webapp to a server-side-rendered (SSR) one, which serves HTML pages dynamically generated from data - ultimately, data that should be sourced from a database. For now, the pages will be rendered from static JSON files, merely simulating an external database source. 
-
-A MySQL database will be integrated properly in the next example; many other kinds of databases could be utilized instead.
-
-Here, we will use the templating engine Handlebars to render the HTML, but that is also easily swapped out if another is preferred.
+You should have already learned how to build a skeleton app with  `express-generator` (
+https://github.com/atcs-wang/hackbca-example-dynamic-server-start)
 
 
-Note: If you are planning on using a framework like Vue or React, you should use a different setup process, and your architecture will look very different. You should research those setup processes instead if applicable.
+Next, we begin to translate our prototypes into an SSR app. This requires us to write both page templates and data that drives the page content.
 
+Ultimately, a webapp's data should be stored in and managed by a proper database server - the so-called "data layer." For now, just so we can see our pages begin to come to life with templating, we will merely keep our data as Javascript objects in the express web server. **This is NOT a viable long-term solution, as such data is not persistent - any changes to the data will be lost if the server is interrupted and stops running.**
 
-## Getting started with express-generator [commit: "express-generator + first steps"]
+We will also discuss the role of other HTTP methods, like POST and DELETE, although their potential will be limited until the persistent data layer 
 
-There is a lot going on in this first commit; let's break down where all this comes from. 
+## The "dummy" event data: data/dummy_events.js
 
-***It is recommended that you go through the process of re-creating this first commit, rather than simply looking through it.*** 
+Check out `data/dummy_events.js`. The file defines one large array of objects, each with properties representing information about an event. This is the actual format which data coming from an SQL database would be structured as - a series (array) of rows (objects) with columns (object properties)
 
-Although we wrote some basic servers already, we're going to start over from scratch. Most server-side rendered express projects have a standard "skeleton structure" that spans over multiple files and folders. 
+For now, we'll utilize this array as if it was just sourced from a database.
 
-A skeleton can be quickly made with express-generator tool. You can use the npx command to run it: 
+The array is assigned to `module.exports`, which allows other files in the Node project to "import" it via
 
-> `npx express-generator --view=hbs <optional-app-name>`
-
-Omit the optional-app-name to build the skeleton using the current folder as the root directory.
-
-Also note the `--view=hbs` option, which configures the app to use the `hbs` module for Handlebars-powered templating. express-generator supports several alternative templating options (e.g. Pug, EJS, etc.). 
-
-
-The generated file structure should look something like this:
-
-```
-.
-├── app.js
-├── bin
-│   └── www
-├── package.json
-├── public
-│   ├── images
-│   ├── javascripts
-│   └── stylesheets
-│       └── style.css
-├── routes
-│   ├── index.js
-│   └── users.js
-└── views
-    ├── error.hbs
-    ├── index.hbs
-    └── layout.hbs
+```js
+var events_data = require('<relative/path/to>/dummy_events.js');
 ```
 
-### The generated files
-The newly generated project structure is a bit complicated, so let’s take a minute to overview it.
+This data will be used provide context for page templates.
 
-- `app.js` – defines the server, including universal middleware like the morgan logger and express.static, but running it doesn’t actually start the server; `node app.js` does nothing
-- `bin/www` is the new “entry” point for our server. Notice the "require" of `app.js` to import the main server functionality; the actual "listen to a port" step happens here.
-- `public` folder contains all static resources like css & images.
-- `routes/index.js` and `routes/users.js` define “routers” to actually handle the webapp’s HTTP routes (e.g. ‘GET /’, ‘GET /users’).
-  - Multiple files allow for better organization of subsections of our webapp. 
-  - `app.js` acts as the “glue” between the various routers.
-- `views` folder contains Handlebars files like `index.hbs`, etc. These are the HTML templates, which are then filled in with data by the server when rendered and served.
+## Copying static resources from our prototypes
 
+Before we begin to translate our prototypes into templates, we can first copy all of the static resources into our public folder - including CSS, front-end JS, and images.
 
-#### package.json
-One very important file to (mostly) understand is `package.json`, which acts as a sort of “settings” file for Node projects. It does a couple of particularly essential things:
-
-  1) Lists all the project's dependencies: any modules (and their specific versions) that must be installed for the project. 
-        - Every use of `npm install <module>` updates `package.json` to include the new module and its version.
-        - This allows for efficient migration/version control of the project; as long as the package.json is maintained, the dependencies do not need to be transferred or saved to version control. 
-        - Running `npm install` automatically installs the correct version of all listed dependencies. This is usually the first step after cloning a node project. 
-        
-
-  2) Defines npm ‘scripts’, including `npm start`, the traditional "launcher" of the app server.
-        - By default, the command `npm start` is set to simply run `node bin/www`. 
-        - You can easily update and add more custom commands.
-
-
-### First steps after express-generator
-
-After setting up the skeleton, here are a few recommended first steps to take before diving in.
-
-1.  Install local libraries listed in package.json
-    
-    > `npm install`
-
-    Note the new `node_modules` folder that appears.
-
-2. Try running the server with this command:
-    
-    > `npm start`
-
-    Using your browser (or `curl`/Postman) go to `localhost:3000` and `localhost:3000/users` to confirm that the server is correctly serving its default pages.
-
-
-3. Initialize a git repository for your project. In VSCode, you can use the big blue “Initialize repository” button under the Source Control menu bar. Or, use `git init` in the terminal.
-
-    *Don’t commit anything yet* - there's an the astronomical number of new files in `node_modules`
-
-4. Create a file called `.gitignore` in the root directory. This allows use to specify folders and files to NOT track with git.
-
-    Add a line to it that says `node_modules`, and notice that the number of untracked files shrinks to about 12. 
-    
-    Stage and commit them with the VSCode Source Control, or `git add *` and `git commit -m "express-generator initial"`
-
-5. Install `nodemon` with npm, but *only as a development dependency*.
-
-> `npm install --save-dev nodemon`
-
-This should automatically update `package.json`.
-
-Then, manually update the "scripts" section of `package.json` to include `"devstart": "nodemon ./bin/www"`.
- 
+Here are the folders and files in the public folder after copying contents:
 
 ```
-{
-  ...
-  ,
-  "scripts": {
-    "start": "node ./bin/www",
-    "devstart": "nodemon ./bin/www"
-  },
-  ...
-}
+public
+├───images
+│       assembly.jpg (later renamed to Auditorium.jpg)
+│       bca-logo-transparent.png
+│       favicon.ico
+│       phoenix.png
+│
+├───js
+│       event_utils.js (edited later)
+│       materialize.min.js
+│
+└───styles
+        event.css
+        index.css
+        main.css
+        materialize.min.css
+        newevent.css
+        tables.css
+```
+You may have additional static resources from your additional prototypes.
+
+As noted above, some of these files are renamed/edited from their prototype versions. There are more .jpg images added later as well.
+## First templates and partials: layout.hbs, header.hbs, footer.hbs (app.js)
+
+The basics of Handlebars templating was explained in the previous commit with the generated skeleton. 
+
+For our example webapp, all our pages share many of the same elements. These elements can be included in the `layout.hbs` file; every page of the website uses the same favicon, Materialize CSS and JS, Google Font Materialize Icons, and main.css styles, just to name a few. 
+
+Some of the elements, obviously, differ page to page. The `{{{body}}}` indicates where the page-specific template will be injected. Other page-specific data contexts will be injected at other points; the `{{title}}` can be specified, and also one or more optional stylesheet names; the `if` and `each` Handlebars blocks help manage those.
+
+This `layout.hbs` goes further and utilizes another Handlebars technique known as "partials", which allows us to compose templates from smaller template parts; the `footer.hbs` and `header.hbs` files in the `views/partials` subfolder contain the respective HTML for each part, and are included via the `{{>partial}}` syntax in `layout.hbs`
+
+Notice that links in `header.hbs` uses different URLs than the prototypes did - instead of implying a static `.html` file, the URL paths do not specify a file extension, but a more general "section" of the website. 
+
+To register the partials in the `views/partial` subfolder, these lines must be added to `app.js`:
+
+```js
+  //Additional setup with the hbs view engine
+  var hbs = require('hbs');
+  //Register partials in particular directory
+  hbs.registerPartials(__dirname + '/views/partials', function (err) {;});
 ```
 
-#### Using nodemon
+With the layout all set up, now we can look at how each of our page prototypes are translated into rendered templates for each page.
+## The homepage (index.hbs, routes/index.js)
 
-We frequently find ourselves needing to restart the server whenever files are changed.
+The main content of the hompage is found in the `index.hbs` file. Its mostly static, but there are a few 
+bits of data context (`num_events, num_attendees, num_projects`) that can now be injected. For now, we will inject the `num_events` but not the other two.
 
-`nodemon` is like the `node` command, but it auto-restarts whenever it detects changes to any project files.
+Look at the updated router for the homepage in `routes/index.js` is updated, and note the new line:
 
-This is only useful when actively developing, so we only installed it as a “development” dependency, and it is recorded separately from other dependcies in package.json
-
-Going forward, you can locally run and test your server using the added custom "devstart" script we added to `package.json`:
-
-> `npm run devstart`
-
-which, as it says in `package.json`, just runs `nodemon ./bin/www`. Now, you don't need to manually restart your server as you edit project files.
-
-
-### Some more reading about the skeleton 
-
-These tutorials also do a good job of explaining getting started with express and the skeleton produced by the express-generator. I recommend skimming the first link, and referencing the second for more detail.
-
-https://www.sitepoint.com/create-new-express-js-apps-with-express-generator/
-
-https://developer.mozilla.org/en-US/docs/Learn/Server-side/Express_Nodejs/skeleton_website
-
-### SSR and Handlebars Templating
-
-Simple websites have URLs that simply refer to "static" pages, which show the same information at all times for all users.  However, most webapps show different versions of the same page, depending on the web app data, generated by the server for each request. This technique is known as Server Side Rendering, or SSR. These pages are usually generated with the help of "templates" - a mix of static HTML content and special syntax that specify how and where data can be injected. 
-
-There are many kinds of templating languages, of which express natively supports a large number of them (). Handlebars is one such language, characterized by its "mustache" syntax.
-
-#### Understanding Handlebars in the skeleton app
-
-Take a look at the files in the `views` folder. The `layout.hbs` file contains common HTML used for all of the app's pages; the `{{{ body }}}` indicates where the page-specific templates are inserted. The `index.hbs` and `error.hbs` files are sample templates for the home and error pages, respectively; along with HTML tags, you'll see several double brackets that indicate places for data to be injected. 
-
-The injected data is specified by the parts of the server in the `routes` folder. Notice this code in the `routes/index.js`:
-
-```
-/* GET home page. */
-router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Express' });
-});
+```js
+var events_data = require('../data/dummy_events');
 ```
 
-This specifies that for HTTP requests for the URL path '/' - the website's homepage - the server should respond with a rendered page from the `index.hbs` template, using data from the provided "context" object passed as the second parameter. Notice the object has a property called "title", which is referred to in the `layout.hbs` and `index.hbs` template files; when rendered, those bracket expressions are replaced with the "title" property's value, 'Express'. 
+This "imports" the dummy data, and the length of the data is passed as the `num_events` property in the context object passed to `res.render`. Also passed in the context object are the page title and `index.css` stylesheet.
 
-There are many more powerful things that can be done with Handlebars templates, which will be explored in the next steps; to start, it is worth skimming this brief tutorial: https://tutorialzine.com/2015/01/learn-handlebars-in-10-minutes
+Start the server with
 
-Also, the official website for Handlebars has some documentation which is terse but fairly useful as reference:  https://handlebarsjs.com/guide/
+```
+npm run devstart
+```
+
+and visit `localhost:3000` to see the homepage. It should look like your prototype, but now the "See What's Happening" button now includes the number "18". 
+
+The link to the events page, of course, results in a 404. Let's build that page and the rest of the event-related pages next!
+
+## The Events router (routes/events.js, app.js)
+
+The remaining prototypes all have to do with the "events" portion of the website. It would be natural for all pages 
+related to events to be found under the (sub)path `/events`, and for the handling of all such pages to be grouped together in the server.
+
+To accomplish this, the new file `routes/events.js` is added, similar to `routes/index.js`. Note the first 3 lines which create an exported Router:
+
+```js
+var express = require('express');
+var router = express.Router();
+module.exports = router;
+```
+
+ Note these two new lines in `app.js`, which "import" that Router and attach it to the express app as a sub-router for all URL paths beginning with "/events":
+
+```js
+var eventsRouter = require('./routes/events');
+```
+
+```js
+app.use('/events', eventsRouter);
+```
+
+Like the router created in `routes/index.js`, the rest of `routes/events.js` sets up handlers for various URL sub-paths that come after "/events". Each route utilizes the events data to render pages from templates. Note this line that imports the dummy event data:
+
+```js
+var events_data = require('../data/dummy_events');
+```
+
+Let's break down how each page is rendered, and the templates involved:
+
+### The main /events page (views/events.hbs)
+
+The main events list page is designated for the '/' sub-route (which is the '/events' URL). 
+
+The main content of the events list page is found in `events.hbs`, which is rendered with `events_data` as part of the data context. The template uses an `{{#each events_data}}` to iterate over the array and create a table row for each object in it.
+#### A brief note: URL-embedded query parameters
+You'll notice that many of the links on the events page link back to the same page, but with something appended to the URL like "?sort=location" or "?filter=type:Main". These are optional parts of a URL called query parameters, and are often used to request more specific options for the page being rendered. 
+
+For now, they are only regurgitated into the page as written, but we could (and eventually will once the database is integrated) actually filter or sort the data before rendering the page with it. 
+
+### The detailed /event/:event_id pages; URL parameters (views/event_detail.hbs)
+
+In our prototypes, specific events each had a page with details for it, but each page looks very similar. Its really just different versions of one page, but with different data for different events. So we'll use one template (`views/event_detail.hbs`) for all of these pages, but differ the event data for each page, based on the different URLs.
+
+Since each event in the data has a unique `event_id`, we assign a unique URL based on that: all URLS of the pattern "/event/`event_id`". The Express route can identify URLs of that pattern and capture the `event_id` from the URL structure. Then, the handler finds the matching `event` object in the `events_data` and use it as data context for rendering the template. Thus - one page template, but separate URLS and rendered pages for each event in the data.
+
+Of note: there are new images in the `public/images` folder which match each possible `event_location`, allowing for each page to use an image that matches the location of the event.
+
+### The /event/create and /event/:event_id/modify pages; (views/event_form.hbs); 
+
+The template for both the event creation page and event modification page(s) is in `views/event_form.hbs`; it includes a form for the client to enter or change data for an event.
+
+The "create" page is simply the empty form, but the modify page(s) are similar to the event detail pages: based on the `event_id` in the URL, rendered from the same template with the appropriate `event` object from the `events_data`. Note the use of the built-in Handlebars helpers `#if` and `#unless` - if the `event` context is provided or not dictates whether the template turns into a "Create" page (where the form's fields are empty) or a "Modify" page, where the form's fields are initialized to the current `event` data. 
+
+But what are forms for anyways? Forms are one of the chief ways website/webapp users can send information to the server via HTTP POST requests. Let's explain forms and POST briefly.
+#### HTML Forms and HTTP POST requests 
+
+Typical web browsing is all about HTTP GET requests - when you enter a URL in your browser, it sends an HTTP GET request to the server associated with the domain for a resource associated with the URL path. The server sends a response with a "body" - the resource that was requested, which is usually some kind of HTML webpage or part of a webpage (like a stylesheet or image or external JS file).  
+
+This client-asks-server-provides pattern is sufficient up to the point where a user wants to upload data to the server - say, sending your email address to sign up for a newsletter, or changing your password, or uploading a social media post. Usually, this information is entered into some kind of **HTML form** on a webpage. Submitting the form will then send an HTTP POST request to the server., which is like a HTTP GET request except it also includes a "body" that contains the data in the form. The server listens for POST requests like it does GET requests, but the server can then use the uploaded data in the body to do something like update their database. 
+
+The HTML form in `views/event_forms.hbs` is configured in the opening `<form>` tag to send a POST request to either the `/events` URL (if creating a new event) or `/events/{{event.event_id}}` for the event being modified. 
+
+Take a look at the two `router.post(...` bits in the `routes/events.js` file. These are listening for POST requests to those respective URLs. In each, `req.body` is a JS object that represents the uploaded data in the body of the request; each property name-value pair matches a field from the HTML form. (This is made possible by the `express.json()` middleware in `app.js`).
+
+For now, our POST handlers simply (and somewhat ham-fisted-ly) add or replace an event in `events_data` with the `req.body` - simulating a database update. Afterwards, the main `/events` page has a new/updated table row, and there is a new/updated event detail page. (There are some missing bits of info not provided from the forms, but we'll let them slide for now).
+
+A POST request is typically responded to with a new page like a GET request does. A common technique is to render or redirect to a page where the uploaded data can be seen. In this case, we already have GET request handlers for event detail pages, so we redirect the user to the page matching the created/modify event.
+
+ (Of course, this all vanishes once the server restarts - hold on for the persistent database layer integration!)  
+
+### The "delete" buttons (public/js/event_utils.js)
+
+On both the main events and event detail pages are "delete" buttons, which in the prototypes have only shown "dummy" confirmation prompts. Now, we want the browser to actually communicate with the server when they are clicked.
+
+Similar to how forms send POST requests, these buttons can be configured to send an HTTP DELETE request to the server - indicating that a particular event should be deleted. 
+
+The file `public/js/event_utils.js` contains a function called `confirmDelete` that is triggered by the delete buttons. It has been updated since the prototypes (where it just showed two pointless confirm popups) to use the `fetch` method. `fetch` uses a technique called "Asynchronous Javascript And XML"  (AJAX for short), which sends an HTTP request to a URL, but **without** going to a new page.  (`fetch` uses Promise syntax instead of callbacks, which may be new to you and is worth learning about). In this case,   `fetch` is used to send a DELETE request to the URL that corresponds with a given event's id.
+
+The `router.delete(...` handler in the `routes/events.js` listens for these requests, and updates the "database" appropriately before sending back a success code but with no content. 
+
+Upon reception of the success code, the `confirmDelete` function redirects itself to the `/events` page where the user can see that the event in question is no longer present - similar to how a successful POST results in a redirect to the new/updated resource.
+
+#### Alternative approaches for DELETE
+Since an HTTP DELETE request doesn't typically require a body, it is conceptually very similar to a GET request. An alternative approach to using fetch/AJAX is to simply make the delete buttons links to URLs that represent the action of deleting a page; the deletion action would then be registered under a matching GET listener in the router.
+
+However, it is considered better practice to utilize DELETE where it seems appropriate, and to keep GET requests limited to actual requests for *resources.*  
+
+## Your turn to practice:
+
+If you have additional prototypes and static resources that you already built for the projects pages (from "Your turn to practice" of https://github.com/atcs-wang/hackbca-example-prototypes ), you may want to port them to this project.
+
+Similar to our current "events" section of the webapp, implement the "projects" section of the webapp. Here's a breakdown of the parts:
+
+1) Create some dummy data for the projects called `dummy_projects.js`, similar to `data/dummy_events.js`. Place your dummy data into the `data` folder.
+
+
+2) Create Handlebars templates for each of the project pages (basing them on your prototypes, if you have them):
+
+    -  `projects.hbs` - table/list  of all projects; links to project detail , modify and create pages, and "dummy" delete button
+    -  `project_detail.hbs` - detail page for one project; links to modify page, and "dummy" delete button
+    -  `project_form.hbs` - form for creating/modifying projects
+
+You may also need to update or add static resources like CSS or JS files.
+
+3) Add a new Router "projects.js", similar to routes/events.js, to the routes folder, and integrate it into app.js so it handles URLs beginning with "/projects". It should utilize the dummy projects data.
+
+    a) Add GET route handlers for
+    - `/` - shows the project table/list
+    - `/:id` - shows detail page for project with given id
+    - `/create` - shows form for creating projects
+    - `/:id/modify` - shows form for modifying project with given id, prepopulate with current data
+
+    b) Add POST route handlers for 
+    - `/` - handles creating a new project from form data
+    - `/:id/modify` - handles modifying an existing project with given id from form data
+
+    c) Add a DELETE route handler for
+    - `/:id` - handles deleting project with given id
+
+
+

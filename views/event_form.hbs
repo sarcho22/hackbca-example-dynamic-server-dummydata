@@ -1,0 +1,133 @@
+{{!-- 
+Template for both the "create new event" and "modify existing event" pages.
+
+Uses both the #if and #unless helpers to set up the page differently based on 
+whether the event property is part of the data context (and thus a modify page) or not (and thus a create page) 
+https://handlebarsjs.com/guide/builtin-helpers.html#if
+https://handlebarsjs.com/guide/builtin-helpers.html#unless
+
+If meant for modifying the page, needs the data context of a specific event, which is 
+used to fill the form with the current event properties. (see the javascript section)
+It is also used to determine the URL that the form will send its POST request to (see 
+the opening form tag)
+ --}}
+<form id="create_modify_event" method="POST" action="/events{{#if event}}/{{event.event_id}}{{/if}}">             
+    <div class="container">
+        <div class="card grey lighten-4">
+            <div class="card-content">
+
+                <span class="card-title"><h1>{{#if event}}Modify{{else}}Create New{{/if}} Event</h1></span>
+
+
+                <div class="row">
+                    <div class="input-field col s12">
+                        <input type="text" id="event_name" name="event_name" class="validate" data-length="32" required>
+                        <label for="event_name">Event Name</label>
+                    </div>
+                </div>
+
+                <!-- https://materializecss.com/select.html -->
+                <div class="row">
+                    <div class="input-field col s6">
+                        <select id="event_type" name="event_type" class="validate"  required > 
+                                {{#unless event}}<option value="" disabled selected>Select a type</option>{{/unless}}
+                                <option value="Main" >Main</option>
+                                <option value="Workshop" >Workshop</option>
+                                <option value="Food" >Food</option>
+                                <option value="Talk" >Talk</option>
+                                <option value="Activity" >Activity</option>
+                            </select>
+                        <label for="event_type">Event Type</label>
+                    </div>
+    
+                    <div class="input-field col s6">
+                        <select id="event_location" name="event_location" class="validate" required > 
+                                {{#unless event}}<option value="" disabled selected>Select a location</option>{{/unless}}
+                                <option value="Gym" >Gym</option>
+                                <option value="Auditorium" >Auditorium</option>
+                                <option value="Lower Cafe" >Lower Cafe</option>
+                                <option value="Room 136" >Room 136</option>
+                                <option value="Room 138A" >Room 138A</option>
+                                <option value="Room 138B" >Room 138B</option>
+                            </select>
+                        <label for="event_location">Location</label>
+                    </div>
+                </div>
+    
+                <div class="row">
+                    <div class = "input-field col s4">
+                        <input type="text" id=event_date name="event_date" class="datepicker no-autoinit" required>
+                        <label for="event_date">Date</label>
+                    </div>
+    
+                    <div class="input-field col s4">
+                        <input type="text" id="event_time" name="event_time" class="timepicker no-autoinit" twelveHour=true required>
+                        <label for="event_time">Time</label>
+                    </div>
+
+                    <div class="input-field col s4">
+                        <input type="number" id="event_duration" name="event_duration" min=0 step=15>
+                        <label for="event_duration">Duration (minutes)</label>
+                        
+                    </div>
+                </div>
+    
+                <div class="row">
+                    <div class="input-field col s12">
+                    <textarea id="event_description" name="event_description" class="materialize-textarea" data-length="500"></textarea>
+                    <label for="event_description">Description</label>
+                    </div>
+                </div>
+
+                <div class="button_wrapper">
+                    <button class="submit waves-effect waves-light btn" type="submit">{{#if event}}Modify{{else}}Create{{/if}}</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</form>
+
+<!-- Special script for initializing .datepicker and.timepicker with options -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var elems = document.querySelectorAll('.datepicker');
+        var instances = M.Datepicker.init(elems, {
+            format: 'mm-dd-yyyy',
+            autoClose: true
+        });
+    });
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        var elems = document.querySelectorAll('.timepicker');
+        var instances = M.Timepicker.init(elems, {
+            defaultTime: 'now', // Set default time: 'now', '1:30AM', '16:30'
+            twelveHour: true, // Use AM/PM or 24-hour format
+            autoClose: false, // automatic close timepicker
+        });
+    });
+
+    //TODO Form Validation
+
+    //Set fields to curent values, if event 
+    {{#if event}}
+    document.addEventListener('DOMContentLoaded', function() {
+        {{#with event}}
+        {{!-- Use triple mustaches to NOT escape characters --}}
+        document.getElementById("event_name").value = "{{{event_name}}}";
+        document.getElementById("event_type").value = "{{{event_type}}}";
+        document.getElementById("event_location").value = "{{{event_location}}}";
+        document.getElementById("event_date").value = "{{{event_date}}}";
+        document.getElementById("event_time").value = "{{{event_time}}}";
+        document.getElementById("event_duration").value = "{{{event_duration}}}";
+        document.getElementById("event_description").value = "{{{event_description}}}";
+        {{/with}}
+
+        
+        var elems = document.querySelectorAll('select');
+        var instances = M.FormSelect.init(elems, {});
+    });
+    {{/if}}
+
+</script>
+        

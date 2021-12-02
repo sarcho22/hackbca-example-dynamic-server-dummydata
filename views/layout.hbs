@@ -1,10 +1,62 @@
+{{!-- 
+The hbs module uses this file (layout.hbs) as the default "layout" for each page.
+We put all elements common to all pages here, including a head that contains standard links/styles, 
+the header (nav bar, etc) and footer, and standard Materialize scripts.
+
+Whenever a template is rendered, a context object is provided. 
+Anything within {{  }} brackets are replaced with the values of matching properties in that "context" object.
+The context object itself can be referred to as "this". 
+
+For example, see {{title}}, which could also be {{this.title}}. 
+Read more here: https://handlebarsjs.com/guide/expressions.html
+
+Notice the use of several built-in "helpers", including the #if (which acts like an if statements)
+ and #each (which acts a lot like a foreach loop). These are useful for conditional and repeated rendering, respectively.
+Read more here: https://handlebarsjs.com/guide/builtin-helpers.html
+
+Note that in the "body" of the "each" loop, the keyword "this" now refers to each element of the array, not the global context object;
+essentially, each element *becomes* the context object inside the array. 
+Read more here: https://handlebarsjs.com/guide/#evaluation-context
+
+The main template used for each page will be inserted where {{{body}}} is.
+
+Templates can also include  "partials": for example, see  {{> header }} and {{> footer }}, where the
+the partials/header.hbs and partials/footer.hbs files. (Note that the partials location needs to registered in app.js)
+
+Read more about partials at : https://handlebarsjs.com/guide/partials.html
+ --}}
 <!DOCTYPE html>
 <html>
   <head>
     <title>{{title}}</title>
-    <link rel='stylesheet' href='/stylesheets/style.css' />
+            <link rel="shortcut icon" type="image/jpg" href="/images/favicon.ico"/>
+
+        <!-- Compiled and minified CSS -->
+        <link rel="stylesheet" href="/styles/materialize.min.css">
+        <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+
+        <link rel="stylesheet" href="/styles/main.css">
+        {{#if style}}
+          <link rel='stylesheet' href='/styles/{{style}}.css' />
+        {{/if}}
+        {{#each styles}}
+          <link rel='stylesheet' href='/styles/{{this}}.css' />
+        {{/each}}
+       
+    </head>
+
   </head>
   <body>
-    {{{body}}}
+    {{>header}}
+    <main>
+      {{{body}}}
+    </main>
+    {{>footer}}
+
+    <!-- Compiled and minified JavaScript -->
+    <script src="/js/materialize.min.js"></script>
+      
+    <!-- initialize Materialize elements -->
+    <script> M.AutoInit(); </script>  
   </body>
 </html>
