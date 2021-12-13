@@ -1,0 +1,99 @@
+{{!-- 
+The main projects list page.
+
+Relies on the built-in #each helper to iterate over an array of project data and produce
+table rows for each element, which represent individual projects.
+
+https://handlebarsjs.com/guide/builtin-helpers.html#each
+
+These include generated links to specific project detail and project modify pages.
+
+There are also numerous links to the same page, but with query parameter URLs for sorts/filters of the data.
+ --}}
+
+<!-- https://materializecss.com/grid.html -->
+
+<div class="container">
+
+  <h1>Project Schedule</h1>
+
+  <blockquote>
+    Click on the project name for more details!
+    Click on <i class="material-icons tiny">sort</i> to sort by that column, or items in <i
+      class="material-icons tiny">filter_list</i> columns to filter by that item.
+  </blockquote>
+  <div class="row">
+    <div class="col l3 s12 "> <i class="left material-icons">sort</i>Sorted by: {{sort}}</div>
+    <div class="col l3 offset-l6 ">
+      <!-- Position differently (left) for mobile -->
+      <div class="right hide-on-small-only"><i class="left material-icons">filter_list</i>Filter: {{filter}}</div>
+      <div class="left hide-on-med-and-up"><i class="left material-icons">filter_list</i>Filter: {{filter}}</div>
+    </div>
+
+  </div>
+
+  <!-- https://materializecss.com/table.html -->
+  <table class="highlight centered responsive-table">
+    <thead>
+      <tr>
+        <!-- USER ONLY-->
+        <th><i class="material-icons">star</i>
+          <a href="?sort=starred"><i class="material-icons">sort</i></a>
+        </th> 
+
+        <th>Project</th>
+        <th>Proposed Date
+          <a href="?sort=datetime"><i class="material-icons">sort</i></a>
+        </th>
+        <th>Updated Date
+          <a href="?sort=datetime"><i class="material-icons">sort</i></a>
+        </th>
+        <th>Type
+          <a href="?sort=type"><i class="material-icons">sort</i></a>
+          <i class="material-icons">filter_list</i>
+        </th>
+        <th>Interest<i class="material-icons">sort</i></th>
+        <!-- ADMIN ONLY BUTTONS -->
+      <th>Admin Op</th>
+      </tr>
+
+
+    </thead>
+
+    <tbody>
+      {{#each projects}}
+      <tr>
+
+        <!-- USER ONLY - Initialize page with appropriate state of button -->
+
+        <td>
+          <a onclick='toggleInterest(this, "{{ project_id }}")'
+            class="btn-floating btn-small waves-effect waves-light scale-transition scale-in blue"><i
+              class="material-icons">star_border</i></a>
+          <!-- If user already "starred" this project, it should be a yellow star -->
+          <!-- <a onclick='toggleInterest(this, "{{ project_id }}"))'class="btn-floating btn-small waves-effect waves-light scale-transition scale-in yellow"><iclass="material-icons">star</i></a> -->
+        </td>
+        <td class="blue-text clickable" onclick="location.href='/projects/{{project_id}}'">{{project_name}}</td>
+        <td><a href='?filter=date:{{project_proposed_ymd}}'>{{project_proposed_date}}</a></td>
+        <td><a href='?filter=date:{{project_updated_ymd}}'>{{project_updated_date}}</a></td>
+        <td> <a href='?filter=type:{{project_type}}'>{{project_type}}</a></td>
+        <!-- ADMIN ONLY BUTTONS -->
+        <td nowrap>
+
+          <a class="btn-floating btn-small waves-effect waves-light green lighten-1" href="/projects/{{project_id}}/modify"><i
+              class="material-icons">edit</i></a>
+          <a class="btn-floating waves-effect waves-light red"
+            onclick='confirmDelete("{{project_name}}","{{ project_id}}")'><i class="material-icons">delete</i></a>
+
+        </td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+</div>
+
+<a href="/projects/create" class="btn-floating btn-large orange fixed-action-btn">
+  <i class="large material-icons">create</i>
+</a>
+
+<script src="/js/project_utils.js"></script>
