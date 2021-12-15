@@ -9,60 +9,58 @@ https://handlebarsjs.com/guide/builtin-helpers.html#with
 Notably, there is a generated link to the corresponding project modify page.
  --}}
 {{#with project}}
+<head>
+    <!-- Page specific CSS -->
+    <link rel="stylesheet" href="/styles/project_formatting.css">
+</head>
+
 <div class="container">
 
     <div class="card">
     <!-- image is optional -->
-    <div class="card-image">
-        <!-- Added div wrapper to create dark gradient -->
-        <div class="card-image-gradient"> 
-            <img src="/images/{{project_location}}.jpg">
-        </div>
-        <span class="card-title"><h1>{{project_name}}</h1></span>
-        <!-- USER ONLY - Initialize page with appropriate state of button -->
-        <a onclick='toggleInterest(this, "{{ project_id }}")' class="btn-floating btn-large halfway-fab waves-effect waves-light scale-transition scale-in blue"><i class="material-icons">star_border</i></a>
-        <!-- <a onclick='toggleInterest(this, "{{ project_id }}"))'class="btn-floating btn-large halfway-fab waves-effect waves-light scale-transition scale-in yellow"><iclass="material-icons">star</i></a> -->
-        
-    </div>
     <div class="card-content">
 
         <table class="centered responsive-table">
-            <thead>
-                <tr>
-                <th>Location </th>
-                <th>Date / Time </th>
-                <th>Duration</th>
-                <th>Type </th>
-                <th>Interest </th>
-                <!-- ADMIN ONLY BUTTONS -->
-                <th>Admin Op</th>
-                
-                </tr>
-            </thead>
             <tbody>
-                 <tr> 
+                <div id="heading">
+                    <div class="container">
+                        <img src="/images/{{project_image}}.png" class=center>
 
-                <!-- USER ONLY - Initialize page with appropriate state of button -->
+                        <h1>{{project_name}}</h1>
+                
+                        <blockquote>
+                        <b>Project Description:</b> {{project_description}}
+                        </blockquote>
+                        <div class="row"> 
 
-                    <td> <a href='/projects?filter=location:{{project_location}}'>{{project_location}} </a></td>
-                    <td><a href='/projects?filter=date:{{project_date_ymd}}'>{{project_date}}</a> {{project_time}}</td>
-                    <td>{{project_duration}}</td>
-                    <td> <a href='/projects?filter=type:{{project_type}}'>{{project_type}}</a></td>
-                    <td>{{project_interest}}<i class=material-icons>people</i></td>
-                    <!-- ADMIN ONLY BUTTONS -->
-                    <td nowrap>
-                                    
-                        <!-- Alternatively to going to a new page, trigger a modal ??-->
-                        <a class="btn-floating waves-effect waves-light green lighten-1" href="/projects/{{ project_id }}/modify"><i class="material-icons">edit</i></a>
-                        <!-- Alternatively to a redirect/refresh, use a fetch(... {method: 'DELETE'} request??-->
-                        <a class="btn-floating waves-effect waves-light red" onclick='confirmDelete("{{project_name}}","{{ project_id}}","/projects")'><i class="material-icons">delete</i></a>
+                        </div>
+                    </div>
+                </div>
 
-                    </td>
-                </tr>
-
+                <div id="table">
+                    <table class="table table-striped">
+                        <thead class="table-dark">
+                        <tr>
+                            <th scope="col">Owner</th>
+                            <th scope="col">Type</th>
+                            <th scope="col">Date Proposed</th>
+                            <th scope="col">Date Last Updated</th>
+                            <th scope="col">Tech Stack</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td>{{project_owner}}</td>
+                            <td>{{project_type}}</td>
+                            <td>{{project_proposed_date}}</td>
+                            <td>{{project_updated_date}}</td>
+                            <td>{{project_tech_stack}}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
             </tbody>
         </table>
-        <div class="container project-description">{{project_description}}</div>
 
         <!-- TODO: Add a scrollable table (or series of cards??) listing the attendees who are interested -->
         <!-- https://vembarrajan.medium.com/html-css-tricks-scroll-able-table-body-tbody-d23182ae0fbc -->
