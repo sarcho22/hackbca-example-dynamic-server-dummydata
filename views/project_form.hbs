@@ -20,55 +20,39 @@ the opening form tag)
 
 
                 <div class="row">
-                    <div class="input-field col s12">
+                    <div class="input-field col s6">
                         <input type="text" id="project_name" name="project_name" class="validate" data-length="32" required>
-                        <label for="project_name">project Name</label>
+                        <label for="project_name">Project Name</label>
+                    </div>
+
+                    <div class="input-field col s6">
+                        <input type="text" id="project_owner" name="project_owner" class="validate" data-length="32" required>
+                        <label for="project_owner">Project Owner</label>
                     </div>
                 </div>
 
                 <!-- https://materializecss.com/select.html -->
                 <div class="row">
                     <div class="input-field col s6">
-                        <select id="project_type" name="project_type" class="validate"  required > 
-                                {{#unless project}}<option value="" disabled selected>Select a type</option>{{/unless}}
-                                <option value="Main" >Main</option>
-                                <option value="Workshop" >Workshop</option>
-                                <option value="Food" >Food</option>
-                                <option value="Talk" >Talk</option>
-                                <option value="Activity" >Activity</option>
-                            </select>
-                        <label for="project_type">project Type</label>
-                    </div>
-    
-                    <div class="input-field col s6">
-                        <select id="project_location" name="project_location" class="validate" required > 
-                                {{#unless project}}<option value="" disabled selected>Select a location</option>{{/unless}}
-                                <option value="Gym" >Gym</option>
-                                <option value="Auditorium" >Auditorium</option>
-                                <option value="Lower Cafe" >Lower Cafe</option>
-                                <option value="Room 136" >Room 136</option>
-                                <option value="Room 138A" >Room 138A</option>
-                                <option value="Room 138B" >Room 138B</option>
-                            </select>
-                        <label for="project_location">Location</label>
+                    <textarea id="project_type" name="project_type" class="materialize-textarea" data-length="500"></textarea>
+                    <label for="project_type">Project Type</label>
                     </div>
                 </div>
     
                 <div class="row">
                     <div class = "input-field col s4">
-                        <input type="text" id=project_date name="project_date" class="datepicker no-autoinit" required>
-                        <label for="project_date">Date</label>
+                        <input type="text" id="project_proposed_date" name="project_proposed_date" class="datepicker no-autoinit" required>
+                        <label for="project_proposed_date">Proposed Date</label>
                     </div>
     
-                    <div class="input-field col s4">
-                        <input type="text" id="project_time" name="project_time" class="timepicker no-autoinit" twelveHour=true required>
-                        <label for="project_time">Time</label>
+                    <div class = "input-field col s4">
+                        <input type="text" id="project_updated_date" name="project_updated_date" class="datepicker no-autoinit" required>
+                        <label for="project_updated_date">Updated Date</label>
                     </div>
 
                     <div class="input-field col s4">
-                        <input type="number" id="project_duration" name="project_duration" min=0 step=15>
-                        <label for="project_duration">Duration (minutes)</label>
-                        
+                    <textarea id="project_tech_stack" name="project_tech_stack" class="materialize-textarea" data-length="500"></textarea>
+                    <label for="project_tech_stack">Tech Stack</label>
                     </div>
                 </div>
     
@@ -90,7 +74,7 @@ the opening form tag)
 
 <!-- Special script for initializing .datepicker and.timepicker with options -->
 <script>
-    document.addprojectListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function() {
         var elems = document.querySelectorAll('.datepicker');
         var instances = M.Datepicker.init(elems, {
             format: 'mm-dd-yyyy',
@@ -98,7 +82,7 @@ the opening form tag)
         });
     });
     
-    document.addprojectListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function() {
         var elems = document.querySelectorAll('.timepicker');
         var instances = M.Timepicker.init(elems, {
             defaultTime: 'now', // Set default time: 'now', '1:30AM', '16:30'
@@ -111,15 +95,15 @@ the opening form tag)
 
     //Set fields to curent values, if project 
     {{#if project}}
-    document.addprojectListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function() {
         {{#with project}}
         {{!-- Use triple mustaches to NOT escape characters --}}
         document.getElementById("project_name").value = "{{{project_name}}}";
+        document.getElementById("project_owner").value = "{{{project_owner}}}";
         document.getElementById("project_type").value = "{{{project_type}}}";
-        document.getElementById("project_location").value = "{{{project_location}}}";
-        document.getElementById("project_date").value = "{{{project_date}}}";
-        document.getElementById("project_time").value = "{{{project_time}}}";
-        document.getElementById("project_duration").value = "{{{project_duration}}}";
+        document.getElementById("project_proposed_date").value = "{{{project_proposed_date}}}";
+        document.getElementById("project_updated_date").value = "{{{project_updated_date}}}";
+        document.getElementById("project_tech_stack").value = "{{{project_tech_stack}}}";
         document.getElementById("project_description").value = "{{{project_description}}}";
         {{/with}}
 
