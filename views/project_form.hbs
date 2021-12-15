@@ -1,0 +1,133 @@
+{{!-- 
+Template for both the "create new project" and "modify existing project" pages.
+
+Uses both the #if and #unless helpers to set up the page differently based on 
+whether the project property is part of the data context (and thus a modify page) or not (and thus a create page) 
+https://handlebarsjs.com/guide/builtin-helpers.html#if
+https://handlebarsjs.com/guide/builtin-helpers.html#unless
+
+If meant for modifying the page, needs the data context of a specific project, which is 
+used to fill the form with the current project properties. (see the javascript section)
+It is also used to determine the URL that the form will send its POST request to (see 
+the opening form tag)
+ --}}
+<form id="create_modify_project" method="POST" action="/projects{{#if project}}/{{project.project_id}}{{/if}}">             
+    <div class="container">
+        <div class="card grey lighten-4">
+            <div class="card-content">
+
+                <span class="card-title"><h1>{{#if project}}Modify{{else}}Create New{{/if}} project</h1></span>
+
+
+                <div class="row">
+                    <div class="input-field col s12">
+                        <input type="text" id="project_name" name="project_name" class="validate" data-length="32" required>
+                        <label for="project_name">project Name</label>
+                    </div>
+                </div>
+
+                <!-- https://materializecss.com/select.html -->
+                <div class="row">
+                    <div class="input-field col s6">
+                        <select id="project_type" name="project_type" class="validate"  required > 
+                                {{#unless project}}<option value="" disabled selected>Select a type</option>{{/unless}}
+                                <option value="Main" >Main</option>
+                                <option value="Workshop" >Workshop</option>
+                                <option value="Food" >Food</option>
+                                <option value="Talk" >Talk</option>
+                                <option value="Activity" >Activity</option>
+                            </select>
+                        <label for="project_type">project Type</label>
+                    </div>
+    
+                    <div class="input-field col s6">
+                        <select id="project_location" name="project_location" class="validate" required > 
+                                {{#unless project}}<option value="" disabled selected>Select a location</option>{{/unless}}
+                                <option value="Gym" >Gym</option>
+                                <option value="Auditorium" >Auditorium</option>
+                                <option value="Lower Cafe" >Lower Cafe</option>
+                                <option value="Room 136" >Room 136</option>
+                                <option value="Room 138A" >Room 138A</option>
+                                <option value="Room 138B" >Room 138B</option>
+                            </select>
+                        <label for="project_location">Location</label>
+                    </div>
+                </div>
+    
+                <div class="row">
+                    <div class = "input-field col s4">
+                        <input type="text" id=project_date name="project_date" class="datepicker no-autoinit" required>
+                        <label for="project_date">Date</label>
+                    </div>
+    
+                    <div class="input-field col s4">
+                        <input type="text" id="project_time" name="project_time" class="timepicker no-autoinit" twelveHour=true required>
+                        <label for="project_time">Time</label>
+                    </div>
+
+                    <div class="input-field col s4">
+                        <input type="number" id="project_duration" name="project_duration" min=0 step=15>
+                        <label for="project_duration">Duration (minutes)</label>
+                        
+                    </div>
+                </div>
+    
+                <div class="row">
+                    <div class="input-field col s12">
+                    <textarea id="project_description" name="project_description" class="materialize-textarea" data-length="500"></textarea>
+                    <label for="project_description">Description</label>
+                    </div>
+                </div>
+
+                <div class="button_wrapper">
+                    <button class="submit waves-effect waves-light btn" type="submit">{{#if project}}Modify{{else}}Create{{/if}}</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</form>
+
+<!-- Special script for initializing .datepicker and.timepicker with options -->
+<script>
+    document.addprojectListener('DOMContentLoaded', function() {
+        var elems = document.querySelectorAll('.datepicker');
+        var instances = M.Datepicker.init(elems, {
+            format: 'mm-dd-yyyy',
+            autoClose: true
+        });
+    });
+    
+    document.addprojectListener('DOMContentLoaded', function() {
+        var elems = document.querySelectorAll('.timepicker');
+        var instances = M.Timepicker.init(elems, {
+            defaultTime: 'now', // Set default time: 'now', '1:30AM', '16:30'
+            twelveHour: true, // Use AM/PM or 24-hour format
+            autoClose: false, // automatic close timepicker
+        });
+    });
+
+    //TODO Form Validation
+
+    //Set fields to curent values, if project 
+    {{#if project}}
+    document.addprojectListener('DOMContentLoaded', function() {
+        {{#with project}}
+        {{!-- Use triple mustaches to NOT escape characters --}}
+        document.getElementById("project_name").value = "{{{project_name}}}";
+        document.getElementById("project_type").value = "{{{project_type}}}";
+        document.getElementById("project_location").value = "{{{project_location}}}";
+        document.getElementById("project_date").value = "{{{project_date}}}";
+        document.getElementById("project_time").value = "{{{project_time}}}";
+        document.getElementById("project_duration").value = "{{{project_duration}}}";
+        document.getElementById("project_description").value = "{{{project_description}}}";
+        {{/with}}
+
+        
+        var elems = document.querySelectorAll('select');
+        var instances = M.FormSelect.init(elems, {});
+    });
+    {{/if}}
+
+</script>
+        
