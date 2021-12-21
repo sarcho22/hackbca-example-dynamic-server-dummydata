@@ -151,7 +151,7 @@ Of note: there are new images in the `public/images` folder which match each pos
 
 The template for both the event creation page and event modification page(s) is in `views/event_form.hbs`; it includes a form for the client to enter or change data for an event.
 
-The "create" page is simply the empty form, but the modify page(s) are similar to the event detail pages: based on the `event_id` in the URL, rendered from the same template with the appropriate `event` object from the `events_data`. Note the use of the built-in Handlebars helpers `#if` and `#unless` - if the `event` context is provided or not dictates whether the template turns into a "Create" page (where the form's fields are empty) or a "Modify" page, where the form's fields are initialized to the current `event` data. 
+The "create" page is simply the empty form, but the modify page(s) are similar to the event detail pages: based on the `event_id` in the URL, rendered from the same template with the appropriate `event` object from the `events_data`. Note the use of the built-in Handlebars helpers `#if` and `#unless` - if the `event` context is provided or not dictates whether the template turns into a "Create" page (where the form's fields are empty) or a "Modify" page, where the form's fields are initialized to the current `event` data.  
 
 But what are forms for anyways? Forms are one of the chief ways website/webapp users can send information to the server via HTTP POST requests. Let's explain forms and POST briefly.
 #### HTML Forms and HTTP POST requests 
